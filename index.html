@@ -140,6 +140,7 @@ canvas{display:block}
     <div class="sb-sec">Principal</div>
     <button class="sb-it on" onclick="go('p1',this)"><div class="sb-dot"></div>Resumen general<span class="sb-badge">Vivo</span></button>
     <button class="sb-it" onclick="go('pC',this)"><div class="sb-dot"></div>Cosechas Junio</button>
+    <button class="sb-it" onclick="go('pSVA',this)"><div class="sb-dot"></div>Ranking SVA</button>
     <button class="sb-it" onclick="go('p2',this)"><div class="sb-dot"></div>Ranking hunters</button>
     <button class="sb-it" onclick="go('p3',this)" style="display:none"><div class="sb-dot"></div>Graficos por mes</button>
     <div class="sb-sec">Abril 2026</div>
@@ -342,6 +343,22 @@ canvas{display:block}
         </div></div>
         <div style="position:relative;height:280px"><canvas id="cSco"></canvas></div>
       </div>
+</div>
+<div id="pSVA" class="pg">
+  <div class="ph">
+    <div>
+      <div class="pt">Ranking SVA — Junio 2026 · Dia 30</div>
+      <div class="ps">RUC 35% · QR 15% · Arisale 35% · Planillas 15% · Cuota 30 Junio</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="svaTeamFilt" onchange="bPSVA()" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg1);color:var(--t1)">
+        <option value="">Todos los equipos</option>
+        <option value="carlos">Head Carlos</option>
+        <option value="ana">Head Ana</option>
+      </select>
+    </div>
+  </div>
+  <div class="rl" id="svaList"></div>
 </div>
 <div id="pC" class="pg">
   <div class="ph">
@@ -932,6 +949,61 @@ function bP2(){
     return`<div class=&quot;${cls}&quot;><div class=&quot;rnum&quot;>${med}</div><div class=&quot;rav&quot; style=&quot;background:${h.col}22;color:${h.col}&quot;>${h.ini}</div><div class=&quot;rinfo&quot;><div class=&quot;rname&quot;>${h.n}</div><div class=&quot;rten&quot;>${tHtml}</div><div class=&quot;rslbl&quot; style=&quot;margin-top:6px&quot;>Score Junio</div><div class=&quot;rsco&quot; style=&quot;color:${c}&quot;>${h.score}%</div></div><div class=&quot;rmet&quot;><div class=&quot;rm&quot;><div class=&quot;rmlbl&quot;>Captura Jun</div><div class=&quot;rmpct&quot; style=&quot;color:#3B82F6&quot;>${h.incr_pct}%</div><div class=&quot;rmval&quot;>${fm(h.incr_val)}</div><div class=&quot;rmbar&quot;><div class=&quot;rmfill&quot; style=&quot;width:${Math.min(100,h.incr_pct/2.5)}%;background:#3B82F6&quot;></div></div></div><div class=&quot;rm&quot;><div class=&quot;rmlbl&quot;>RUC Abr</div><div class=&quot;rmpct&quot; style=&quot;color:#00E5A0&quot;>${h.ruc_pct}%</div><div class=&quot;rmval&quot;>${h.ruc_n} nuevos</div><div class=&quot;rmbar&quot;><div class=&quot;rmfill&quot; style=&quot;width:${Math.min(100,h.ruc_pct)}%;background:#00E5A0&quot;></div></div></div><div class=&quot;rm&quot;><div class=&quot;rmlbl&quot;>QR Abr</div><div class=&quot;rmpct&quot; style=&quot;color:#A855F7&quot;>${h.qr_pct}%</div><div class=&quot;rmval&quot;>${h.qr_n} activos</div><div class=&quot;rmbar&quot;><div class=&quot;rmfill&quot; style=&quot;width:${Math.min(100,h.qr_pct)}%;background:#A855F7&quot;></div></div></div><div class=&quot;rm&quot;><div class=&quot;rmlbl&quot;>Arisale Abr</div><div class=&quot;rmpct&quot; style=&quot;color:#F59E0B&quot;>${h.aris_pct}%</div><div class=&quot;rmval&quot;>${h.aris_val>0?fm(h.aris_val):'S/.0'}</div><div class=&quot;rmbar&quot;><div class=&quot;rmfill&quot; style=&quot;width:${Math.min(100,h.aris_pct)}%;background:#F59E0B&quot;></div></div></div></div></div>`;
   }).join('');
 }
+
+function bPSVA(){
+  var _tf=document.getElementById('svaTeamFilt');
+  var _t=_tf?_tf.value:'';
+  var _data=RANK_SVA.filter(function(r){return !_t||r.team===_t;});
+  var medals=['🥇','🥈','🥉'];
+  var COL_RUC='#00C9FF',COL_QR='#A855F7',COL_ARS='#F59E0B',COL_PLAN='#8B5CF6',COL_OK='#22C55E';
+  function barColor(pct,base){return pct>=100?COL_OK:base;}
+  function pctFmt(v){return v.toFixed(1)+'%';}
+  function fmtAris(v){return 'S/.'+v.toLocaleString('es-PE');}
+  var el=document.getElementById('svaList');if(!el)return;
+  el.innerHTML=_data.map(function(h,idx){
+    var med=medals[h.pos-1]||('#'+h.pos);
+    var c=h.score>=100?'#00E5A0':h.score>=70?'#F59E0B':'#EF4444';
+    var cls=h.pos===1?'rc t1':h.pos===2?'rc t2':h.pos===3?'rc t3':'rc';
+    var albl=h.aq>=240?'S/.240':'S/.180';
+    return '<div class="'+cls+'">'
+      +'<div class="rnum">'+med+'</div>'
+      +'<div class="rav" style="background:'+h.col+'22;color:'+h.col+'">'+h.ini+'</div>'
+      +'<div class="rinfo">'
+        +'<div class="rname">'+h.n+'</div>'
+        +'<div class="rten">Score SVA</div>'
+        +'<div class="rslbl" style="margin-top:6px">Score SVA</div>'
+        +'<div class="rsco" style="color:'+c+'">'+pctFmt(h.score)+'</div>'
+      +'</div>'
+      +'<div class="rmet">'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_RUC+'">RUC Junio <span style="font-size:8px;color:var(--t3)">(35%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.ruc_pct,COL_RUC)+'">'+pctFmt(h.ruc_pct)+'</div>'
+          +'<div class="rmval">'+h.ruc_n+' RUC / cuota: 3</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.ruc_pct)+'%;background:'+barColor(h.ruc_pct,COL_RUC)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_QR+'">QR Junio <span style="font-size:8px;color:var(--t3)">(15%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.qr_pct,COL_QR)+'">'+pctFmt(h.qr_pct)+'</div>'
+          +'<div class="rmval">'+h.qr_n+' QR total (activos+pend) / cuota: 3</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.qr_pct)+'%;background:'+barColor(h.qr_pct,COL_QR)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_ARS+'">Arisale Junio <span style="font-size:8px;color:var(--t3)">(35%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.aris_pct,COL_ARS)+'">'+pctFmt(h.aris_pct)+'</div>'
+          +'<div class="rmval">'+fmtAris(h.aris_val)+' / cuota: '+albl+'</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.aris_pct)+'%;background:'+barColor(h.aris_pct,COL_ARS)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_PLAN+'">Planillas Junio <span style="font-size:8px;color:var(--t3)">(15%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.plan_pct,COL_PLAN)+'">'+pctFmt(h.plan_pct)+'</div>'
+          +'<div class="rmval">'+h.plan_n+' planillas / cuota: 2</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.plan_pct)+'%;background:'+barColor(h.plan_pct,COL_PLAN)+'"></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
 function bP3(){
   dc('cEne');CHS['cEne']=new Chart(document.getElementById('cEne'),{type:'line',data:{labels:['01-Ene','07-Ene','14-Ene','21-Ene','31-Ene'],datasets:[{label:'Real enero',data:[0,58000,145000,280000,424922],borderColor:'#00E5A0',backgroundColor:'rgba(0,229,160,.06)',pointRadius:[3,3,3,3,8],tension:.4,fill:true,borderWidth:2.5}]},options:dkO()});
   dc('cFeb');CHS['cFeb']=new Chart(document.getElementById('cFeb'),{type:'line',data:{labels:['01-Feb','07-Feb','14-Feb','21-Feb','28-Feb'],datasets:[{label:'Real febrero',data:[0,80000,198000,380000,570244],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.06)',pointRadius:[3,3,3,3,8],tension:.4,fill:true,borderWidth:2.5}]},options:dkO()});
@@ -1248,7 +1320,7 @@ const CTS2=[
 {"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","r":"DYNAMIC MOTORS E.I.R.L","ruc":"20602789749","mes":"JUNIO","t":"FISICO","pot":25000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":0.0,"proy":0.0},
 {"h":"ALICIA QUINONES","col":"#FF8C42","team":"ana","r":"Creatividad En Alimentos S.A.C","ruc":"20610417486","mes":"JUNIO","t":"NEWS","pot":30000.0,"f":0,"m":0,"a30":0,"m06":0,"m10":0,"m12":0,"m14":0,"m17":0,"m19":0,"m21":0,"m24":0,"m25":0,"m28":0,"m31":0.0,"p":0.0,"jun02":0.0,"proy":53418.992,"jun07":7.9567,"jun09":2567.2454,"jun14":7322.2439,"jun16":11616.5132,"jun21":28194.122,"jun23":38078.612,"jun30":53418.992},
 {"h":"KEVIN PAULINO","col":"#06B6D4","team":"carlos","r":"FB IMPORTACIONES COMPANY EMPRESA INDIVIDUAL DE RESPONSABILIDAD LIMITADA","ruc":"20615065022","mes":"JUNIO","t":"FISICO","pot":30000.0,"f":1.0,"m":0,"a30":0,"m31":0,"jun21":50806.8,"proy":80117.433,"jun23":53977.275,"jun30":80117.433},
-{"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","r":"BEIT GROUP PERU S.A.C. - PILLIN","ruc":"20605867163","mes":"JUNIO","t":"FISICO","pot":25000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":0.0,"proy":0.0},
+{"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","r":"BEIT GROUP PERU S.A.C. - PILLIN","ruc":"20605867163","mes":"JUNIO","t":"FISICO","pot":25000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":0.0,"proy":0.0},
 {"h":"MELISSA VASQUEZ","col":"#FF6B6B","team":"carlos","r":"CIUDADOMUJER SAC","ruc":"20613034031","mes":"JUNIO","t":"FISICO","pot":30000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":19078.983,"proy":19078.983},
 {"h":"ANALIZ CASTILLO","col":"#F59E0B","team":"ana","r":"BRISA ASOCIADOS S.A.C.","ruc":"20605268812","mes":"JUNIO","t":"FISICO","pot":130000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":147093.21,"proy":147093.21},
 {"h":"MELISSA VASQUEZ","col":"#FF6B6B","team":"carlos","r":"M Y M MULTISERVICIOS AUDIOVISUALES E.I.R.L.","ruc":"20615329551","mes":"JUNIO","t":"FISICO","pot":100000.0,"f":0,"m":0,"a30":0,"m31":0,"jun30":0.0,"proy":0.0},
@@ -1930,6 +2002,61 @@ function bP2(){
   }).join('');
 }
 
+
+function bPSVA(){
+  var _tf=document.getElementById('svaTeamFilt');
+  var _t=_tf?_tf.value:'';
+  var _data=RANK_SVA.filter(function(r){return !_t||r.team===_t;});
+  var medals=['🥇','🥈','🥉'];
+  var COL_RUC='#00C9FF',COL_QR='#A855F7',COL_ARS='#F59E0B',COL_PLAN='#8B5CF6',COL_OK='#22C55E';
+  function barColor(pct,base){return pct>=100?COL_OK:base;}
+  function pctFmt(v){return v.toFixed(1)+'%';}
+  function fmtAris(v){return 'S/.'+v.toLocaleString('es-PE');}
+  var el=document.getElementById('svaList');if(!el)return;
+  el.innerHTML=_data.map(function(h,idx){
+    var med=medals[h.pos-1]||('#'+h.pos);
+    var c=h.score>=100?'#00E5A0':h.score>=70?'#F59E0B':'#EF4444';
+    var cls=h.pos===1?'rc t1':h.pos===2?'rc t2':h.pos===3?'rc t3':'rc';
+    var albl=h.aq>=240?'S/.240':'S/.180';
+    return '<div class="'+cls+'">'
+      +'<div class="rnum">'+med+'</div>'
+      +'<div class="rav" style="background:'+h.col+'22;color:'+h.col+'">'+h.ini+'</div>'
+      +'<div class="rinfo">'
+        +'<div class="rname">'+h.n+'</div>'
+        +'<div class="rten">Score SVA</div>'
+        +'<div class="rslbl" style="margin-top:6px">Score SVA</div>'
+        +'<div class="rsco" style="color:'+c+'">'+pctFmt(h.score)+'</div>'
+      +'</div>'
+      +'<div class="rmet">'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_RUC+'">RUC Junio <span style="font-size:8px;color:var(--t3)">(35%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.ruc_pct,COL_RUC)+'">'+pctFmt(h.ruc_pct)+'</div>'
+          +'<div class="rmval">'+h.ruc_n+' RUC / cuota: 3</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.ruc_pct)+'%;background:'+barColor(h.ruc_pct,COL_RUC)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_QR+'">QR Junio <span style="font-size:8px;color:var(--t3)">(15%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.qr_pct,COL_QR)+'">'+pctFmt(h.qr_pct)+'</div>'
+          +'<div class="rmval">'+h.qr_n+' QR total (activos+pend) / cuota: 3</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.qr_pct)+'%;background:'+barColor(h.qr_pct,COL_QR)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_ARS+'">Arisale Junio <span style="font-size:8px;color:var(--t3)">(35%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.aris_pct,COL_ARS)+'">'+pctFmt(h.aris_pct)+'</div>'
+          +'<div class="rmval">'+fmtAris(h.aris_val)+' / cuota: '+albl+'</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.aris_pct)+'%;background:'+barColor(h.aris_pct,COL_ARS)+'"></div></div>'
+        +'</div>'
+        +'<div class="rm">'
+          +'<div class="rmlbl" style="color:'+COL_PLAN+'">Planillas Junio <span style="font-size:8px;color:var(--t3)">(15%)</span></div>'
+          +'<div class="rmpct" style="color:'+barColor(h.plan_pct,COL_PLAN)+'">'+pctFmt(h.plan_pct)+'</div>'
+          +'<div class="rmval">'+h.plan_n+' planillas / cuota: 2</div>'
+          +'<div class="rmbar"><div class="rmfill" style="width:'+Math.min(100,h.plan_pct)+'%;background:'+barColor(h.plan_pct,COL_PLAN)+'"></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
 function bP3(){
   // ENERO: del dia 1 al 31, cierre S/.424,922
   dc('cEne');CHS['cEne']=new Chart(document.getElementById('cEne'),{type:'line',
@@ -2604,7 +2731,7 @@ function bP9(){
   if(_f)_f.textContent=_fd.length+" oportunidades · Total: "+_fm(_tot);
 }
 
-var PAGES={pC:{title:'Cosechas Mayo 2026',sub:'Sin Restas · Dia 305 · Real vs Proyectado',build:bPC}, p1:{title:'Resumen general',sub:'Corte al 30 de Junio 2026 · Dia 30',build:bP1},p2:{title:'Ranking — Solo Junio 2026',sub:'Captura 65% + RUC 15% + QR 7% + Arisale 7% + Planillas 6% — Dia 30 Junio 2026 — 15 hunters',build:bP2},p3:{title:'5 graficos de lineas por mes',sub:'Enero   Febrero   Marzo   Abril   Mayo',build:bP3},p4:{title:'Curva Mayo   Dia 305',sub:'Real dia 305   Proy S/.3,494K',build:bP4},p5:{title:'Arisale   Solo Junio 2026',sub:'76 lic   S/.2836   Cuota S/.3,234',build:bP5},p6:{title:'QR Parlante   Solo Junio 2026',sub:'4 nuevos mayo   41 activos total   19 pendientes',build:bP6},p7:{title:'Cuentas — Junio 2026',sub:'Mar · Abr-30 · May-31 · Jun-30 · 135 cuentas',build:function(){try{updCC();}catch(e){}try{rC();}catch(e){}}},p8:{title:'RUC Nuevos   Solo Junio 2026',sub:'30 RUC   Cuota 44   Dia 305   Proy S/.673K',build:bP8},p9:{title:'Funnel — Pipeline Junio 2026',sub:'87 oportunidades · S/.12,540,000 potencial · Dia 30 Junio',build:bP9},
+var PAGES={pSVA:{title:'Ranking SVA — Junio 2026',sub:'RUC 35% · QR 15% · Arisale 35% · Planillas 15% · Dia 30 Junio',build:bPSVA},pC:{title:'Cosechas Mayo 2026',sub:'Sin Restas · Dia 305 · Real vs Proyectado',build:bPC}, p1:{title:'Resumen general',sub:'Corte al 30 de Junio 2026 · Dia 30',build:bP1},p2:{title:'Ranking — Solo Junio 2026',sub:'Captura 65% + RUC 15% + QR 7% + Arisale 7% + Planillas 6% — Dia 30 Junio 2026 — 15 hunters',build:bP2},p3:{title:'5 graficos de lineas por mes',sub:'Enero   Febrero   Marzo   Abril   Mayo',build:bP3},p4:{title:'Curva Mayo   Dia 305',sub:'Real dia 305   Proy S/.3,494K',build:bP4},p5:{title:'Arisale   Solo Junio 2026',sub:'76 lic   S/.2836   Cuota S/.3,234',build:bP5},p6:{title:'QR Parlante   Solo Junio 2026',sub:'4 nuevos mayo   41 activos total   19 pendientes',build:bP6},p7:{title:'Cuentas — Junio 2026',sub:'Mar · Abr-30 · May-31 · Jun-30 · 135 cuentas',build:function(){try{updCC();}catch(e){}try{rC();}catch(e){}}},p8:{title:'RUC Nuevos   Solo Junio 2026',sub:'30 RUC   Cuota 44   Dia 305   Proy S/.673K',build:bP8},p9:{title:'Funnel — Pipeline Junio 2026',sub:'87 oportunidades · S/.12,540,000 potencial · Dia 30 Junio',build:bP9},
   pAbril:{title:'Dashboard Abril 2026',sub:'Cierre al 30 de Abril   Resumen   Ranking   Curva   Arisale   QR   Cuentas   RUC',build:function(){}}};
 var done={};
 function go(id,btn){
@@ -2651,7 +2778,7 @@ var _rucDistData={labels:['ROSA TORRES', 'CRISTIAN HUAMAN', 'ANDREA SOTO', 'FRAN
     {h:'ANDREA SOTO',col:'#FFD93D',r:'INVERSIONES REALNA SAC',ruc:'20611436786',proy:12205.22},
     {h:'ALICIA QUINONES',col:'#FF8C42',r:'WOSAK SAC',ruc:'20547709013',proy:0.0},
     {h:'ROSA TORRES',col:'#6BCF7F',r:'DYNAMIC MOTORS E.I.R.L',ruc:'20602789749',proy:0.0},
-    {h:'ROSA TORRES',col:'#6BCF7F',r:'BEIT GROUP PERU S.A.C. - PILLIN',ruc:'20605867163',proy:0.0},
+    {h:'ROSA TORRES',col:'#6BCF7F',r:'BEIT GROUP PERU S.A.C. - PILLIN',ruc:'20605867163',proy:0.0},
     {h:'MELISSA VASQUEZ',col:'#FF6B6B',r:'CIUDADOMUJER SAC',ruc:'20613034031',proy:19078.98},
     {h:'MELISSA VASQUEZ',col:'#FF6B6B',r:'M Y M MULTISERVICIOS AUDIOVISUALES E.I.R.L.',ruc:'20615329551',proy:0.0},
     {h:'MELISSA VASQUEZ',col:'#FF6B6B',r:'Importaciones Import Export Leo E.I.R.L.',ruc:'20610272291',proy:1.1},
@@ -2744,7 +2871,7 @@ function bP8(){
     {h:'ROSA TORRES',col:'#6BCF7F',r:'DYNAMIC MOTORS E.I.R.L',banco:'BCP',ruc:'20602789749',m1:'NO',m0:'NO',pot:25000,jun:0.0,proy:0.0},
     {h:'ALICIA QUINONES',col:'#FF8C42',r:'Creatividad En Alimentos S.A.C',banco:'IBK PRIVADA',ruc:'20610417486',m1:'NO',m0:'SI',pot:80000,jun:53418.99,proy:53418.99},
     {h:'KEVIN PAULINO',col:'#06B6D4',r:'FB IMPORTACIONES COMPANY EMPRESA INDIVIDUAL DE RESPONSABILIDAD LIMITADA',banco:'BCP',ruc:'20615065022',m1:'NO',m0:'SI',pot:80000,jun:80117.43,proy:80117.43},
-    {h:'ROSA TORRES',col:'#6BCF7F',r:'BEIT GROUP PERU S.A.C. - PILLIN',banco:'IBK PRIVADA',ruc:'20605867163',m1:'NO',m0:'NO',pot:25000,jun:0.0,proy:0.0},
+    {h:'ROSA TORRES',col:'#6BCF7F',r:'BEIT GROUP PERU S.A.C. - PILLIN',banco:'IBK PRIVADA',ruc:'20605867163',m1:'NO',m0:'NO',pot:25000,jun:0.0,proy:0.0},
     {h:'MELISSA VASQUEZ',col:'#FF6B6B',r:'CIUDADOMUJER SAC',banco:'BBVA',ruc:'20613034031',m1:'NO',m0:'NO',pot:30000,jun:19078.98,proy:19078.98},
     {h:'ANALIZ CASTILLO',col:'#F59E0B',r:'BRISA ASOCIADOS S.A.C.',banco:'BCP',ruc:'20605268812',m1:'NO',m0:'SI',pot:130000,jun:147093.21,proy:147093.21},
     {h:'MELISSA VASQUEZ',col:'#FF6B6B',r:'M Y M MULTISERVICIOS AUDIOVISUALES E.I.R.L.',banco:'BCP',ruc:'20615329551',m1:'NO',m0:'NO',pot:100000,jun:0.0,proy:0.0},
@@ -2850,6 +2977,24 @@ function bP8(){
     }).join('')
     +'</tbody></table>';
 }
+const RANK_SVA=[
+{pos:1,n:'PATRICIA ASTORGA',ini:'PA',col:'#00E5A0',team:'ana',score:132.5,ruc_pct:100.0,ruc_n:3,qr_pct:133.3,qr_n:4,aris_pct:295.4,aris_val:709,aq:240,plan_pct:50.0,plan_n:1},
+{pos:2,n:'ROSA TORRES',ini:'RT',col:'#6BCF7F',team:'carlos',score:130.0,ruc_pct:333.3,ruc_n:10,qr_pct:166.7,qr_n:5,aris_pct:100.0,aris_val:240,aq:240,plan_pct:0.0,plan_n:0},
+{pos:3,n:'OLIVER LOPEZ',ini:'OL',col:'#4ECDC4',team:'ana',score:126.7,ruc_pct:133.3,ruc_n:4,qr_pct:66.7,qr_n:2,aris_pct:225.0,aris_val:540,aq:240,plan_pct:0.0,plan_n:0},
+{pos:4,n:'ANALIZ CASTILLO',ini:'AC',col:'#F59E0B',team:'ana',score:126.2,ruc_pct:100.0,ruc_n:3,qr_pct:300.0,qr_n:9,aris_pct:175.0,aris_val:420,aq:240,plan_pct:0.0,plan_n:0},
+{pos:5,n:'CRISTIAN HUAMAN',ini:'CH',col:'#00C9FF',team:'ana',score:103.3,ruc_pct:233.3,ruc_n:7,qr_pct:66.7,qr_n:2,aris_pct:66.7,aris_val:120,aq:180,plan_pct:0.0,plan_n:0},
+{pos:6,n:'ANDREA SOTO',ini:'AS',col:'#FFD93D',team:'carlos',score:90.0,ruc_pct:233.3,ruc_n:7,qr_pct:133.3,qr_n:4,aris_pct:0.0,aris_val:0,aq:240,plan_pct:0.0,plan_n:0},
+{pos:7,n:'ALICIA QUINONES',ini:'AQ',col:'#FF8C42',team:'ana',score:84.2,ruc_pct:133.3,ruc_n:4,qr_pct:133.3,qr_n:4,aris_pct:50.0,aris_val:120,aq:240,plan_pct:0.0,plan_n:0},
+{pos:8,n:'MARIA FLORES',ini:'MF',col:'#EC4899',team:'carlos',score:81.7,ruc_pct:133.3,ruc_n:4,qr_pct:0.0,qr_n:0,aris_pct:100.0,aris_val:180,aq:180,plan_pct:0.0,plan_n:0},
+{pos:9,n:'FRANCO ROUILLON',ini:'FR',col:'#F97316',team:'ana',score:66.7,ruc_pct:133.3,ruc_n:4,qr_pct:133.3,qr_n:4,aris_pct:0.0,aris_val:0,aq:180,plan_pct:0.0,plan_n:0},
+{pos:10,n:'MELISSA VASQUEZ',ini:'MV',col:'#FF6B6B',team:'carlos',score:66.7,ruc_pct:133.3,ruc_n:4,qr_pct:133.3,qr_n:4,aris_pct:0.0,aris_val:0,aq:240,plan_pct:0.0,plan_n:0},
+{pos:11,n:'LEONARDO TELLO',ini:'LT',col:'#8B5CF6',team:'carlos',score:56.2,ruc_pct:0.0,ruc_n:0,qr_pct:0.0,qr_n:0,aris_pct:160.6,aris_val:289,aq:180,plan_pct:0.0,plan_n:0},
+{pos:12,n:'MELISA LLACCHUAS',ini:'ML',col:'#FF6B9D',team:'carlos',score:53.8,ruc_pct:100.0,ruc_n:3,qr_pct:66.7,qr_n:2,aris_pct:25.0,aris_val:60,aq:240,plan_pct:0.0,plan_n:0},
+{pos:13,n:'KEVIN PAULINO',ini:'KP',col:'#06B6D4',team:'carlos',score:35.0,ruc_pct:100.0,ruc_n:3,qr_pct:0.0,qr_n:0,aris_pct:0.0,aris_val:0,aq:180,plan_pct:0.0,plan_n:0},
+{pos:14,n:'ROCK LLANOS',ini:'RL',col:'#84CC16',team:'ana',score:28.3,ruc_pct:66.7,ruc_n:2,qr_pct:33.3,qr_n:1,aris_pct:0.0,aris_val:0,aq:180,plan_pct:0.0,plan_n:0},
+{pos:15,n:'ANA CARRERA',ini:'AC2',col:'#A855F7',team:'ana',score:10.0,ruc_pct:0.0,ruc_n:0,qr_pct:66.7,qr_n:2,aris_pct:0.0,aris_val:0,aq:240,plan_pct:0.0,plan_n:0},
+{pos:16,n:'YASMIN CHECA',ini:'YC',col:'#888780',team:'carlos',score:0.0,ruc_pct:0.0,ruc_n:0,qr_pct:0.0,qr_n:0,aris_pct:0.0,aris_val:0,aq:180,plan_pct:0.0,plan_n:0},
+];
 const COSECHAS_DATA=[
 {"h":"ANDREA SOTO","col":"#FFD93D","team":"carlos","mes":"MARZO","r":"DASSO DRY CLEANER E.I.R.L","t":"FISICO","pot":75000.0,"mar":10977.7,"abr":139261.08,"may":145562.9,"jun":124968.9,"inc":0.858522},
 {"h":"ANA CARRERA","col":"#A855F7","team":"ana","mes":"MARZO","r":"AUTOMECANICA SAN MIGUEL SRL","t":"FISICO","pot":30000.0,"mar":32.63,"abr":0.0,"may":0.0,"jun":0.0,"inc":0.0},
@@ -3001,7 +3146,7 @@ const COSECHAS_DATA=[
 {"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","mes":"JUNIO","r":"DYNAMIC MOTORS E.I.R.L","t":"FISICO","pot":25000.0,"mar":0,"abr":0,"may":0,"jun":0.0,"inc":4.0},
 {"h":"ALICIA QUINONES","col":"#FF8C42","team":"ana","mes":"JUNIO","r":"Creatividad En Alimentos S.A.C","t":"FISICO","pot":80000.0,"mar":0,"abr":0,"may":0,"jun":48562.72,"inc":5.0},
 {"h":"KEVIN PAULINO","col":"#06B6D4","team":"carlos","mes":"JUNIO","r":"FB IMPORTACIONES COMPANY EMPRESA INDIVIDUAL DE RESPONSABILIDAD LIMITADA","t":"FISICO","pot":80000.0,"mar":0,"abr":0,"may":0,"jun":80926.7,"inc":6.0},
-{"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","mes":"JUNIO","r":"BEIT GROUP PERU S.A.C. - PILLIN","t":"FISICO","pot":25000.0,"mar":0,"abr":0,"may":0,"jun":0.0,"inc":7.0},
+{"h":"ROSA TORRES","col":"#6BCF7F","team":"carlos","mes":"JUNIO","r":"BEIT GROUP PERU S.A.C. - PILLIN","t":"FISICO","pot":25000.0,"mar":0,"abr":0,"may":0,"jun":0.0,"inc":7.0},
 {"h":"MELISSA VASQUEZ","col":"#FF6B6B","team":"carlos","mes":"JUNIO","r":"CIUDADOMUJER SAC","t":"FISICO","pot":30000.0,"mar":0,"abr":0,"may":0,"jun":19271.7,"inc":8.0},
 {"h":"ANALIZ CASTILLO","col":"#F59E0B","team":"ana","mes":"JUNIO","r":"BRISA ASOCIADOS S.A.C.","t":"FISICO","pot":130000.0,"mar":0,"abr":0,"may":0,"jun":148579.0,"inc":9.0},
 {"h":"MELISSA VASQUEZ","col":"#FF6B6B","team":"carlos","mes":"JUNIO","r":"M Y M MULTISERVICIOS AUDIOVISUALES E.I.R.L.","t":"FISICO","pot":100000.0,"mar":0,"abr":0,"may":0,"jun":0.0,"inc":9.0},
